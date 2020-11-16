@@ -1,7 +1,7 @@
 
 library(dplyr)
 library(xtable)
-
+library(ggplot2)
 ######################
 
 zipFile<-"activity.zip"
@@ -29,7 +29,7 @@ hist(xtablePerSteps$total.steps,
      main="Histogram for total of steps.", 
      xlab="Steps", 
      border="white", 
-     col="blue")
+     col="blue", breaks = 20)
 
 stepsPerDateMedian<-median(xtablePerSteps$total.steps)
 stepsPerDateMean<-mean(xtablePerSteps$total.steps)
@@ -66,4 +66,23 @@ hist(steps.per.day.imputed$total.steps,
      main="Histogram for total of steps.", 
      xlab="Steps", 
      border="white", 
-     col="blue")
+     col="blue", breaks = 20)
+#################################################
+
+defineDayType<-function(day)
+{
+  date<-ymd(day)
+  dayasWDay<-wday(date)
+  ifelse(dayasWDay %in% c(7,1), "weekend","weekday")
+}
+
+altered.data.weekday<-mutate(altered.data,weekday=defineDayType(date))
+
+altered.data.weekday.interval<- altered.data.weekday %>% 
+  group_by(interval,weekday) %>% 
+  summarize(mean.steps=mean(imputingSteps))
+
+ggplot(altered.data.weekday.interval, aes(x=interval, y=mean.steps, colour=weekday)) +
+  facet_grid(weekday ~ .)+
+  geom_line() 
+
