@@ -1,20 +1,9 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
 
-```{r include=FALSE}
 library(dplyr)
 library(xtable)
 
-```
+######################
 
-
-## Loading and preprocessing the data
-
-```{r}
 zipFile<-"activity.zip"
 csvFile<-"activity.csv"
 
@@ -23,11 +12,9 @@ if(!file.exists(csvFile)){
 }
 
 activity.monitoring.data<-read.csv(csvFile)
-```
 
-## Calculate the total number of steps taken per day.
+##################################################
 
-```{r message=FALSE, results="asis"}
 activity.monitoring.data.non.nan<-subset(activity.monitoring.data,!is.na(steps))
 
 steps.per.day<- activity.monitoring.data.non.nan %>% 
@@ -35,13 +22,8 @@ steps.per.day<- activity.monitoring.data.non.nan %>%
   summarize(total.steps=sum(steps))
 
 xtablePerSteps<-xtable(steps.per.day)
+
 print(xtablePerSteps,type="html")
-
-```
-
-## Histogram of the total number of steps taken each day.
-
-```{r}
 
 hist(xtablePerSteps$total.steps, 
      main="Histogram for total of steps.", 
@@ -49,44 +31,26 @@ hist(xtablePerSteps$total.steps,
      border="white", 
      col="blue")
 
-```
-
-## Mean and median per day.
-
-```{r}
 stepsPerDateMedian<-median(xtablePerSteps$total.steps)
 stepsPerDateMean<-mean(xtablePerSteps$total.steps)
-```
-
-Mean = `r stepsPerDateMean`  
-Median = `r stepsPerDateMedian`
 
 
-
-## What is the average daily activity pattern?
-
-```{r message=FALSE}
 mean.steps.per.interval<- activity.monitoring.data.non.nan %>% 
   group_by(interval) %>% 
   summarize(mean.steps=mean(steps))
+
+plot(mean.steps.per.interval$interval, 
+     mean.steps.per.interval$mean.steps, type="l")
 
 maxMean<-max(mean.steps.per.interval$mean.steps)
 
 maxInterval<-mean.steps.per.interval[mean.steps.per.interval$mean.steps== maxMean,]
 
-plot(mean.steps.per.interval$interval, 
-     mean.steps.per.interval$mean.steps, type="l")
-```
+# activity.monitoring.data$steps[which(is.na(activity.monitoring.data$steps))] <-
+#   mean.steps.per.interval$mean.steps[mean.steps.per.interval$interval ==
+#                             activity.monitoring.data$interval]
 
-Maximum interval:
-
-```{r results="asis"}
-xtableMaxInterval<-xtable(maxInterval)
-print(xtableMaxInterval,type="html")
-```
-
-## Imputing missing values
-```{r message=FALSE}
+########################################################
 altered.data<-mutate(activity.monitoring.data, imputingSteps=
                         ifelse(is.na(steps),
                                mean.steps.per.interval$mean.steps[mean.steps.per.interval$interval == activity.monitoring.data$interval]
@@ -103,8 +67,3 @@ hist(steps.per.day.imputed$total.steps,
      xlab="Steps", 
      border="white", 
      col="blue")
-```
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
